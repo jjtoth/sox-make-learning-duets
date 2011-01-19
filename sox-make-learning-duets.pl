@@ -20,6 +20,25 @@ EOQ
 # sox -S bass/03 03 Lazybones - Bass.mp3 bass-only-03.mp3 mixer 0.4,0.6,0,0
 # sox -S -m lead-only-03.mp3 bass-only-03.mp3 03-lead-bass.mp3
 
+# THERE IS A BETTER WAY!
+
+# Mix it down:
+# sox -S "Songname - Tenor\ Left.mp3" -c1 tenor-only.wav mixer -l
+# sox -S "Songname - Lead\ Left.mp3" -c1 lead.wav mixer -l
+# -c1 means "reduce to 1 channel", and mixer -l means "left only"
+# Then merge via
+
+# Assuming mon *-only.wav's, here:
+#
+#   my @parts=qw(lead bari bass tenor);
+#   for my $i (0 .. $#parts - 1){
+#       for my $j ($i+1 .. $#parts){
+#           for $cmd ("sox -SM $parts[$i]-only.wav $parts[$j]-only.wav $parts[$i]-$parts[$j].mp3") {
+#               print $cmd;system $cmd
+#           }
+#       }
+#   }
+
 use warnings;
 use strict;
 
