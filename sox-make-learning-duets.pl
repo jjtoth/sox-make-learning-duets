@@ -72,11 +72,14 @@ for my $num (@nums ) {
         for my $j ( ($i+1)..$#parts ) {
             my $part2 = $parts[$j];
             my @files = (
-                glob("$part1/$num*.mp3") || glob ("$part1/?-$num*.mp3"),
-                glob("$part2/$num*.mp3") || glob ("$part2/?-$num*.mp3"),
+                glob("$part1/$num*.mp3"), # || glob ("$part1/?-$num*.mp3"),
+                glob("$part2/$num*.mp3"), # || glob ("$part2/?-$num*.mp3"),
             );
-            exit 0 if @files == 0;
-            next if @files == 1; # There's that one tenor track that Larry didn't send us...
+            do {
+                print "No more files! (parts are $part1 $part2\n";
+                exit 0 ;
+            }if @files == 0;
+            #next if @files == 1; # There's that one tenor track that Larry didn't send us...
             @files == 2 or die "Found more than two (or only 1) for file $num, parts $part1 and $part2";
             my @part_files = map {
                 "$_-only-$num.mp3"
