@@ -15,11 +15,6 @@ By default, we try for 1 through 12.
 EOQ
 }
 
-# TODO
-# Do song names
-# (Using MP3::Tag, probably)
-# This is great for doing lots, but not so good for doing one.
-
 # What this does (for the command line) is like this:
 # sox -S lead/03 Lazybones - Lead.mp3 lead-only-03.mp3 mixer 0.4,0.6,0,0
 # sox -S bass/03 03 Lazybones - Bass.mp3 bass-only-03.mp3 mixer 0.4,0.6,0,0
@@ -46,6 +41,7 @@ EOQ
 
 use warnings;
 use strict;
+use MP3::Tag;
 
 use Getopt::Long;
 
@@ -59,6 +55,9 @@ command_line();
 
 # These should be configurable.  They're not, yet.
 my @parts = qw(lead bass tenor bari);
+my @pts = qw(Ld Bs Tr Br);
+my ($pt_re) = map { qr/\b$_\b/i } join("|", @parts);
+
 my @nums = map { sprintf("%02d",$_) } $start..$end;
 
 my @base_command = qw(sox -S);
@@ -129,9 +128,26 @@ for my $num (@nums) {
 # sox -S Bass/$num*.mp3 bassonly-$num.mp3 mixer 0.6,0.4,0,0 
 # sox -S -m bassonly-$num.mp3 leadonly-$num.mp3 leadbass-$num.mp3
 
+            my $mp3 = MP3::Tag->new($file);
 
+            my ($title, $track, $artist, $album) =
+                $mp3->autoinfo();
+            # Really we care about $title and $album.  Though we might want to
+            # fiddle with track (if it contains the disk # info).
 
+            my $duet = "$pts[$i]/$pts[$j]";
 
+            for ($title, $album) {
+                $_ = "$duet - $_" unless s/$pt_re/$duet/g;
+            }
+            $album =~ s/Learning Tracks/Duets/;
+            $mp3->update_tags({
+                title => $title,
+                album => $album,
+            });
+        }
+    }
+}
 
 
 
