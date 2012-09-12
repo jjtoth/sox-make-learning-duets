@@ -28,6 +28,15 @@ EOQ
 # -c1 means "reduce to 1 channel", and mixer -l means "left only"
 # Then merge via
 
+# EVEN BETTER:
+
+# sox -S -M lead.mp3 bass.mp3 01-lead-bass.mp3 remix 3 1
+# Then we need to change to use 160bps (should be easy)
+# (Yup: -r 160k)
+# Um, no -- see way below.
+
+# Most of these comments will go away in a later git commit.  Or so I hope. :-)
+
 # Assuming mon *-only.wav's, here:
 #
 #   my @parts=qw(lead bari bass tenor);
@@ -71,6 +80,7 @@ my @mixer_commands = (
 );
 # 40% into left channel and 60% into the right, then vice versa
 # ---bzzzt!  Now doing "All right, then all left"
+# ---bzzzzzzt!  Not using this at all now.
 
 sub sys_or_die{
     print "\e[32m@_\e[0m\n" if $verbose;
@@ -86,48 +96,46 @@ for my $num (@nums) {
         for my $j ( ($i+1)..$#parts ) {
             my $part2 = $parts[$j];
             my @files = (
+                # It would probably be better to set "file1" and "$file2"
+                # above, one time each, instead of deriving it every time.
+                # Deriving made some sense before we started using the -M flag
+                # to sox with the remix effect, but now it doesn't (I think).
                 (first{ -f $_ } (glob("$part1/$num*.mp3"), glob ("$part1/?-$num*.mp3"))),
                 (first{ -f $_ } (glob("$part2/$num*.mp3"), glob ("$part2/?-$num*.mp3"))),
+                # Some years, I claim that the albums are, for example
+                # "1 of 4", and some years I don't. Thus, the name iTunes gives
+                # the file varies.
             );
             do {
-                print "No more files! (parts are $part1 $part2\n";
+                print "No more files! (parts are $part1 $part2)\n";
                 exit 0 ;
             } if @files == 0;
             next if @files == 1;
+
             @files == 2 or die "Found more than two (or only 1) for file $num, parts $part1 and $part2";
             die "Undefined files in @files!" if grep { ! defined } @files;
-            my @part_files = (
-                "$part1-right-only-$num.mp3",
-                "$part2-left-only-$num.mp3"
-            );
-            for (0..1) {
-                unless (-f $part_files[$_]) {
-                    sys_or_die(
-                        @base_command,
-                        $files[$_],
-                        $part_files[$_],
-                        @{$mixer_commands[$_]}
-                    );
-                    my $type = $part_files[$_];
-                    $type =~ s/-\d+\.mp3$// or die "$type???";
-                    $type = join " ", map { ucfirst } split /-/, $type;
-                    sys_or_die(qw(mp3info2 -l), $type, $part_files[$_]);
-                }
-            }
+            # I think we're getting undefs because first() is doing weird
+            # things.  Don't care enough to track it down.
+
             my $file = "$num-$part1-$part2.mp3";
             sys_or_die(
-                @base_command, "-m",
-                @part_files,
-                $file
-            );
-            sys_or_die(qw(mp3info2 -l), "$part1 $part2 duets", $file);
-        }
-    }
-}
-# sox -S Lead/$num*.mp3 leadonly-$num.mp3 mixer 0.4,0.6,0,0 
-# sox -S Bass/$num*.mp3 bassonly-$num.mp3 mixer 0.6,0.4,0,0 
-# sox -S -m bassonly-$num.mp3 leadonly-$num.mp3 leadbass-$num.mp3
+                @base_command, '-M',
+                # -M means merge with separate channels.  So with two files,
+                # we'll have four channels: left, right, left, right, (at this
+                # stage, anyway).
+                @files,
 
+                qw(-C 160.2),
+                # See soxformat(7).  Specifically, the 160 denotes 160kps
+                # bitrate, and "quality" is set (using lame) at the recommended
+                # "2" (instead of the lousy default "5").
+
+                $file,
+                qw(remix 3 1),
+                # I.e. take the third channel (left of the second) for the left
+                # channel and the first channel (right of the first) for the
+                # right.
+            );
             my $mp3 = MP3::Tag->new($file);
 
             my ($title, $track, $artist, $album) =
