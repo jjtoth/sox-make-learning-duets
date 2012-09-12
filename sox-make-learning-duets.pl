@@ -15,39 +15,6 @@ By default, we try for 1 through 12.
 EOQ
 }
 
-# What this does (for the command line) is like this:
-# sox -S lead/03 Lazybones - Lead.mp3 lead-only-03.mp3 mixer 0.4,0.6,0,0
-# sox -S bass/03 03 Lazybones - Bass.mp3 bass-only-03.mp3 mixer 0.4,0.6,0,0
-# sox -S -m lead-only-03.mp3 bass-only-03.mp3 03-lead-bass.mp3
-
-# THERE IS A BETTER WAY!
-
-# Mix it down:
-# sox -S "Songname - Tenor\ Left.mp3" -c1 tenor-only.wav mixer -l
-# sox -S "Songname - Lead\ Left.mp3" -c1 lead.wav mixer -l
-# -c1 means "reduce to 1 channel", and mixer -l means "left only"
-# Then merge via
-
-# EVEN BETTER:
-
-# sox -S -M lead.mp3 bass.mp3 01-lead-bass.mp3 remix 3 1
-# Then we need to change to use 160bps (should be easy)
-# (Yup: -r 160k)
-# Um, no -- see way below.
-
-# Most of these comments will go away in a later git commit.  Or so I hope. :-)
-
-# Assuming mon *-only.wav's, here:
-#
-#   my @parts=qw(lead bari bass tenor);
-#   for my $i (0 .. $#parts - 1){
-#       for my $j ($i+1 .. $#parts){
-#           for $cmd ("sox -SM $parts[$i]-only.wav $parts[$j]-only.wav $parts[$i]-$parts[$j].mp3") {
-#               print $cmd;system $cmd
-#           }
-#       }
-#   }
-
 use warnings;
 use strict;
 use MP3::Tag;
@@ -70,18 +37,6 @@ my ($pt_re) = map { qr/\b$_\b/i } join("|", @parts);
 my @nums = map { sprintf("%02d",$_) } $start..$end;
 
 my @base_command = qw(sox -S);
-my @mixer_commands = (
-    ["remix", 0, 1],
-    ["remix", 1, 0],
-    #`["mixer", "1.0,0.0,0.0,0.0"],
-    #`["mixer", "0.0,1.0,0.0,0.0"],
-    #["mixer", "0.4,0.6,0,0"],
-    #["mixer", "0.6,0.4,0,0"],
-);
-# 40% into left channel and 60% into the right, then vice versa
-# ---bzzzt!  Now doing "All right, then all left"
-# ---bzzzzzzt!  Not using this at all now.
-
 sub sys_or_die{
     print "\e[32m@_\e[0m\n" if $verbose;
     sleep .01;
