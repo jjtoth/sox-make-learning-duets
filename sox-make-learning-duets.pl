@@ -1,18 +1,23 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
+
+use Time::HiRes "sleep";
+
 
 # Creates duos out of learning tracks
 # See usage.
 sub usage {
     return <<"EOQ";
-Usage: $0
+Usage: $0 [--start=N] [--end=N]
 Creates duos out of learning tracks.  You should set up a temporary directory
 with symlinks for each part (lead, bari, bass, tenor), and then all 6 duos will
 be created when run in that temporary directory.
+By default, we try for 1 through 12.
 EOQ
 }
 
 # TODO
 # Do song names
+# (Using MP3::Tag, probably)
 # This is great for doing lots, but not so good for doing one.
 
 # What this does (for the command line) is like this:
@@ -46,11 +51,13 @@ use Getopt::Long;
 
 my $help;
 my $dry_run;
+my $verbose = 1;
+my ($start, $end) = (1,12);
 command_line();
 
 # These should be configurable.  They're not, yet.
 my @parts = qw(lead bass bari tenor);
-my @nums = map { sprintf("%02d",$_) } 1..12;
+my @nums = map { sprintf("%02d",$_) } $start..$end;
 
 my @base_command = qw(sox -S);
 my @mixer_commands = (
@@ -60,7 +67,8 @@ my @mixer_commands = (
 # 40% into left channel and 60% into the right, then vice versa
 
 sub sys_or_die{
-    print "@_\n";
+    print "\e[32m@_\e[0m\n" if $verbose;
+    sleep .01;
     if (not $dry_run) {
         system(@_) == 0 or exit 1;
     }
@@ -114,7 +122,9 @@ sub command_line {
     GetOptions(
         "help" => \$help,
         "dry"  => \$dry_run,
-    );
+        "start=i" => \$start,
+        "end=i" => \$end,
+    ) or exit 1;
 
     if ($help) {
         print usage();
