@@ -49,6 +49,8 @@ use strict;
 
 use Getopt::Long;
 
+use List::Util qw(first);
+
 my $help;
 my $dry_run;
 my $verbose = 1;
@@ -56,15 +58,20 @@ my ($start, $end) = (1,12);
 command_line();
 
 # These should be configurable.  They're not, yet.
-my @parts = qw(lead bass bari tenor);
+my @parts = qw(lead bass tenor bari);
 my @nums = map { sprintf("%02d",$_) } $start..$end;
 
 my @base_command = qw(sox -S);
 my @mixer_commands = (
-    ["mixer", "0.4,0.6,0,0"],
-    ["mixer", "0.6,0.4,0,0"],
+    ["remix", 0, 1],
+    ["remix", 1, 0],
+    #`["mixer", "1.0,0.0,0.0,0.0"],
+    #`["mixer", "0.0,1.0,0.0,0.0"],
+    #["mixer", "0.4,0.6,0,0"],
+    #["mixer", "0.6,0.4,0,0"],
 );
 # 40% into left channel and 60% into the right, then vice versa
+# ---bzzzt!  Now doing "All right, then all left"
 
 sub sys_or_die{
     print "\e[32m@_\e[0m\n" if $verbose;
@@ -74,37 +81,47 @@ sub sys_or_die{
     }
 }
 
-for my $num (@nums ) {
+for my $num (@nums) {
     for my $i ( 0..$#parts ) {
         my $part1 = $parts[$i];
         for my $j ( ($i+1)..$#parts ) {
             my $part2 = $parts[$j];
             my @files = (
-                glob("$part1/$num*.mp3"), # || glob ("$part1/?-$num*.mp3"),
-                glob("$part2/$num*.mp3"), # || glob ("$part2/?-$num*.mp3"),
+                (first{ -f $_ } (glob("$part1/$num*.mp3"), glob ("$part1/?-$num*.mp3"))),
+                (first{ -f $_ } (glob("$part2/$num*.mp3"), glob ("$part2/?-$num*.mp3"))),
             );
             do {
                 print "No more files! (parts are $part1 $part2\n";
                 exit 0 ;
-            }if @files == 0;
-            #next if @files == 1; # There's that one tenor track that Larry didn't send us...
+            } if @files == 0;
+            next if @files == 1;
             @files == 2 or die "Found more than two (or only 1) for file $num, parts $part1 and $part2";
-            my @part_files = map {
-                "$_-only-$num.mp3"
-            } ($part1,$part2);
+            die "Undefined files in @files!" if grep { ! defined } @files;
+            my @part_files = (
+                "$part1-right-only-$num.mp3",
+                "$part2-left-only-$num.mp3"
+            );
             for (0..1) {
-                sys_or_die(
-                    @base_command,
-                    $files[$_],
-                    $part_files[$_],
-                    @{$mixer_commands[0]}
-                ) unless -f $part_files[$_];
+                unless (-f $part_files[$_]) {
+                    sys_or_die(
+                        @base_command,
+                        $files[$_],
+                        $part_files[$_],
+                        @{$mixer_commands[$_]}
+                    );
+                    my $type = $part_files[$_];
+                    $type =~ s/-\d+\.mp3$// or die "$type???";
+                    $type = join " ", map { ucfirst } split /-/, $type;
+                    sys_or_die(qw(mp3info2 -l), $type, $part_files[$_]);
+                }
             }
+            my $file = "$num-$part1-$part2.mp3";
             sys_or_die(
                 @base_command, "-m",
                 @part_files,
-                "$num-$part1-$part2.mp3"
+                $file
             );
+            sys_or_die(qw(mp3info2 -l), "$part1 $part2 duets", $file);
         }
     }
 }
