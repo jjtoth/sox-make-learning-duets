@@ -72,7 +72,7 @@ for my $num (@nums) {
             # I think we're getting undefs because first() is doing weird
             # things.  Don't care enough to track it down.
 
-            my $file = "$num-$part1-$part2.mp3";
+            my $file = "$num-$part2-$part1.mp3";
             sys_or_die(
                 @base_command, '-M',
                 # -M means merge with separate channels.  So with two files,
@@ -108,6 +108,10 @@ for my $num (@nums) {
                 title => $title,
                 album => $album,
             });
+            my $new_title = $title;
+            $new_title =~ s{\s*$duet\s*-?\s*}{ };
+            $new_title =~ s{/}{_}g;
+            system(qw(mv -v), $file, "$num $part2-$part1 - $new_title.mp3")
         }
     }
 }
