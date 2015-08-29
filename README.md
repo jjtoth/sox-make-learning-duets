@@ -16,6 +16,6 @@ Requires sox (compiled with liblame), Perl, and the Time::HiRes and MP3::Tag Per
 
 Patches, suggestions, and some sort of test suite would be very welcome.
 
-If the tracks you get aren't aligned (presumably because there are varying
-lengths added to the beginning), the duets won't be in sync. I recommend using
-Audacity to time shift them.
+If the tracks you get aren't aligned (presumably because there are short
+intros of varying lengths added to the beginning), the duets won't be in sync.
+I recommend using Audacity to time shift them.
