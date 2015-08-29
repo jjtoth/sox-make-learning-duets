@@ -27,6 +27,7 @@ my $help;
 my $dry_run;
 my $verbose = 1;
 my ($start, $end) = (1,12);
+my $album;
 command_line();
 
 # These should be configurable.  They're not, yet.
@@ -46,6 +47,9 @@ sub sys_or_die{
         system(@_) == 0 or exit 1;
     }
 }
+
+# Use tracknum to keep count of the tracks (and put them all in the same album)
+my $tracknum;
 
 for my $num (@nums) {
     for my $i ( 0..$#parts ) {
@@ -95,25 +99,36 @@ for my $num (@nums) {
             );
             my $mp3 = MP3::Tag->new($file);
 
-            my ($title, $track, $artist, $album) =
+            my ($title, $track, $artist, $cur_album) =
                 $mp3->autoinfo();
             # Really we care about $title and $album.  Though we might want to
             # fiddle with track (if it contains the disk # info).
 
-            my $duet = "$pts[$i]/$pts[$j]";
+            unless ($album) {
+                $album = $cur_album;
+                $album =~ s/Learning Tracks/Learning Duets/;
+                $album =~ s/$pt_re //;
+            }
 
-            for ($title, $album) {
+
+            my $duet = "$pts[$i]/$pts[$j]";
+            for ($title) {
                 $_ = "$duet - $_" unless s/$pt_re/$duet/g;
             }
-            $album =~ s/Learning Tracks/Duets/;
             $mp3->update_tags({
                 title => $title,
                 album => $album,
+                track => ++$tracknum,
             });
-            my $new_title = $title;
-            $new_title =~ s{\s*$duet\s*-?\s*}{ };
-            $new_title =~ s{/}{_}g;
-            system(qw(mv -v), $file, "$num $part2-$part1 - $new_title.mp3")
+            # Now make title appropriate for paths.
+            $title =~ s{\s*$duet\s*-?\s*}{ };
+            $title =~ s{/}{_}g;
+            $duet =~ s{/}{-}g;
+            my $new_path = sprintf(
+                "%02d %s - %s.mp3",
+                $tracknum, $duet, $title
+            );
+            system(qw(mv -v), $file, $new_path);
         }
     }
 }
@@ -123,9 +138,11 @@ for my $num (@nums) {
 sub command_line {
     GetOptions(
         "help" => \$help,
-        "dry"  => \$dry_run,
+        "dry!"  => \$dry_run,
+        "verbose!"  => \$verbose,
         "start=i" => \$start,
         "end=i" => \$end,
+        "album=s"   => \$album,
     ) or exit 1;
 
     if ($help) {
