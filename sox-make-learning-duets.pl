@@ -3,13 +3,13 @@
 use Time::HiRes "sleep";
 
 
-# Creates duos out of learning tracks
+# Creates duets out of learning tracks
 # See usage.
 sub usage {
     return <<"EOQ";
 Usage: $0 [--start=N] [--end=N]
-Creates duos out of learning tracks.  You should set up a temporary directory
-with symlinks for each part (lead, bari, bass, tenor), and then all 6 duos will
+Creates duets out of learning tracks.  You should set up a temporary directory
+with symlinks for each part (lead, bari, bass, tenor), and then all 6 duets will
 be created when run in that temporary directory.
 By default, we try for 1 through 12.
 EOQ
