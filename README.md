@@ -1,5 +1,16 @@
 # sox-make-learning-duets
-Makes "learning duets" out of learning tracks.  Currently hard coded for Lead, Bari, Bass, and Tenor.
+Makes "learning duets" out of learning tracks.
+
+You should set up a temporary directory with symlinks for each part (lead,
+bari, bass, tenor), and then all 6 duets will be created when run in that
+temporary directory.  By default, we try for tracks 1 through 12; use
+something like:
+
+    perl sox-make-learning-duets.pl --start=15 --end=15
+
+to override that.  Doesn't do well with single files; it assumes you have a
+whole album of tracks.  (In particular, this was thrown together for working
+with Harmony Brigades.)
 
 Requires sox (compiled with liblame), Perl, and the Time::HiRes and MP3::Tag Perl modules from CPAN.
 
