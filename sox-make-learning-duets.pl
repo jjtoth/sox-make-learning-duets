@@ -32,7 +32,9 @@ command_line();
 # These should be configurable.  They're not, yet.
 my @parts = qw(lead bass tenor bari);
 my @pts = qw(Ld Bs Tr Br);
-my ($pt_re) = map { qr/\b$_\b/i } join("|", @parts);
+my $pt_re = qr<@{[
+    join "|", map { qr/\b$_\b/i } @parts
+]}>;
 
 my @nums = map { sprintf("%02d",$_) } $start..$end;
 
