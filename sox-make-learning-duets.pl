@@ -7,9 +7,9 @@ use Time::HiRes "sleep";
 # See usage.
 sub usage {
     return <<"EOQ";
-Usage: $0 [--start=N] [--end=N]
+Usage: $0 [--start=N] [--end=N] [--parts=lead,bass]
 Creates duets out of learning tracks.  You should set up a temporary directory
-with symlinks for each part (lead, bari, bass, tenor), and then all 6 duets will
+with symlinks for each part (by default: lead, bari, bass, tenor), and then all 6 duets will
 be created when run in that temporary directory.
 By default, we try for 1 through 12.
 EOQ
@@ -28,11 +28,10 @@ my $dry_run;
 my $verbose = 1;
 my ($start, $end) = (1,12);
 my $album;
-command_line();
-
-# These should be configurable.  They're not, yet.
 my @parts = qw(lead bass tenor bari);
 my @pts = qw(Ld Bs Tr Br);
+command_line();
+
 my $pt_re = qr<@{[
     join "|", map { qr/\b$_\b/i } @parts
 ]}>;
@@ -40,7 +39,7 @@ my $pt_re = qr<@{[
 my @nums = map { sprintf("%02d",$_) } $start..$end;
 
 my @base_command = qw(sox -S);
-sub sys_or_die{
+sub sys_or_die {
     print "\e[32m@_\e[0m\n" if $verbose;
     sleep .01;
     if (not $dry_run) {
@@ -136,6 +135,7 @@ for my $num (@nums) {
 
 
 sub command_line {
+    my @new_parts;
     GetOptions(
         "help" => \$help,
         "dry!"  => \$dry_run,
@@ -143,10 +143,17 @@ sub command_line {
         "start=i" => \$start,
         "end=i" => \$end,
         "album=s"   => \$album,
+        "parts=s" => \@new_parts,
     ) or exit 1;
 
     if ($help) {
         print usage();
         exit 0;
+    }
+
+    if (@new_parts) {
+        @parts = @pts = ();
+        @parts = map { (split /,/) } @new_parts;
+        @pts = @parts;
     }
 }
