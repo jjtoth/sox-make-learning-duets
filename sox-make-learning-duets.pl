@@ -100,6 +100,7 @@ for my $num (@nums) {
             my $duet = "$pts[$i]/$pts[$j]";
             for ($title) {
                 $_ = "$duet - $_" unless s/$pt_re/$duet/g;
+                s/\s\s+/ /g;
             }
 
             my $mp3 = MP3::Tag->new($file);
