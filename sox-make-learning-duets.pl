@@ -4,17 +4,7 @@ use Time::HiRes "sleep";
 
 
 # Creates duets out of learning tracks
-# See usage.
-sub usage {
-    return <<"EOQ";
-Usage: $0 [--start=N] [--end=N]
-Creates duets out of learning tracks.  You should set up a temporary directory
-with symlinks for each part (lead, bari, bass, tenor), and then all 6 duets will
-be created when run in that temporary directory.
-By default, we try for 1 through 12.
-EOQ
-}
-
+# See usage at the bottom.
 use warnings;
 use strict;
 use MP3::Tag;
@@ -138,7 +128,7 @@ for my $num (@nums) {
 sub command_line {
     GetOptions(
         "help" => \$help,
-        "dry!"  => \$dry_run,
+        "dry-run!"  => \$dry_run,
         "verbose!"  => \$verbose,
         "start=i" => \$start,
         "end=i" => \$end,
@@ -149,4 +139,13 @@ sub command_line {
         print usage();
         exit 0;
     }
+}
+sub usage {
+    return <<"EOQ";
+Usage: $0 [--start=N] [--end=N] [--dry-run] [--verbose]
+Creates duets out of learning tracks.  You should set up a temporary directory
+with symlinks for each part (lead, bari, bass, tenor), and then all 6 duets will
+be created when run in that temporary directory.
+By default, we try for 1 through 12.
+EOQ
 }
