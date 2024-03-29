@@ -86,10 +86,8 @@ for my $num (@nums) {
                 # channel and the first channel (right of the first) for the
                 # right.
             );
-            my $mp3 = MP3::Tag->new($files[0]);
-
             my ($title, $track, $artist, $cur_album) =
-                $mp3->autoinfo();
+                MP3::Tag->new($files[0])->autoinfo;
             # Really we care about $title and $album.  Though we might want to
             # fiddle with track (if it contains the disk # info).
 
@@ -103,6 +101,8 @@ for my $num (@nums) {
             for ($title) {
                 $_ = "$duet - $_" unless s/$pt_re/$duet/g;
             }
+
+            my $mp3 = MP3::Tag->new($file);
             $mp3->update_tags({
                 title => $title,
                 album => $album,
