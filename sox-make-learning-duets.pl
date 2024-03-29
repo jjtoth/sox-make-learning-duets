@@ -87,7 +87,7 @@ for my $num (@nums) {
                 # channel and the first channel (right of the first) for the
                 # right.
             );
-            my $mp3 = MP3::Tag->new($file);
+            my $mp3 = MP3::Tag->new($files[0]);
 
             my ($title, $track, $artist, $cur_album) =
                 $mp3->autoinfo();
