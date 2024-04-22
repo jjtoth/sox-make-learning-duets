@@ -19,3 +19,8 @@ Patches, suggestions, and some sort of test suite would be very welcome.
 If the tracks you get aren't aligned (presumably because there are short
 intros of varying lengths added to the beginning), the duets won't be in sync.
 I recommend using Audacity to time shift them.
+
+KNOWN BUGS
+
+* Looks like the "author" tag is being filled with the derived track number
+* The script puts the parts in the wrong order (so if bari is in the left side and tenor in the right, it is given the name Tr/Br)
