@@ -146,6 +146,7 @@ sub command_line {
         print usage();
         exit 0;
     }
+    $verbose //= $dry_run;
 }
 sub usage {
     return <<"EOQ";
