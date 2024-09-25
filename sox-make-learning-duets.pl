@@ -76,7 +76,7 @@ for my $num (@nums) {
             # I think we're getting undefs because first() is doing weird
             # things.  Don't care enough to track it down.
 
-            my $file = "$num-$part2-$part1.mp3";
+            my $file = sprintf("%03d",$tracknum) . "-$num-$part2-$part1.mp3";
             sys_or_die(
                 @base_command, '-M',
                 # -M means merge with separate channels.  So with two files,
@@ -95,7 +95,6 @@ for my $num (@nums) {
                 # channel and the first channel (right of the first) for the
                 # right.
             );
-            say "(Track number $tracknum)";
             next if $dry_run;
             my ($title, $track, $artist, $cur_album) =
                 MP3::Tag->new($files[0])->autoinfo;
