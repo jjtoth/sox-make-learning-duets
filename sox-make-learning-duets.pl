@@ -58,6 +58,7 @@ for my $num (@nums) {
     for my $i ( 0..$#parts ) {
         my $part1 = $parts[$i];
         for my $j ( ($i+1)..$#parts ) {
+            $tracknum++;
             my $part2 = $parts[$j];
             my @files = (
                 file_for($part1, $num),
@@ -93,6 +94,7 @@ for my $num (@nums) {
                 # channel and the first channel (right of the first) for the
                 # right.
             );
+            say "(Track number $tracknum)";
             next if $dry_run;
             my ($title, $track, $artist, $cur_album) =
                 MP3::Tag->new($files[0])->autoinfo;
@@ -115,7 +117,7 @@ for my $num (@nums) {
             $mp3->update_tags({
                 title => $title,
                 album => $album,
-                track => ++$tracknum,
+                track => $tracknum,
             });
             # Now make title appropriate for paths.
             $title =~ s{\s*$duet\s*-?\s*}{ };
