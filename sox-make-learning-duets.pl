@@ -60,16 +60,17 @@ for my $num (@nums) {
         for my $j ( ($i+1)..$#parts ) {
             $tracknum++;
             my $part2 = $parts[$j];
-            my @files = (
-                file_for($part1, $num),
-                file_for($part2, $num),
-            );
-            do {
-                print "No more files! (parts are $part1 $part2)\n";
-                exit 0 ;
-            } if @files == 0;
-            next if @files == 1;
-
+            my @files;
+            eval { @files = (
+                    file_for($part1, $num),
+                    file_for($part2, $num),
+                );
+            };
+            if ($@) {
+                die $@ unless $dry_run;
+                print "Would have died (after track number $tracknum): $@\n";
+            }
+            next if @files == 1 or @files == 0;
             @files == 2 or die "Found more than two (or only 1) for file $num, parts $part1 and $part2";
             die "Undefined files in @files!" if grep { ! defined } @files;
             # I think we're getting undefs because first() is doing weird
