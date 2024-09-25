@@ -17,11 +17,13 @@ my $dry_run;
 my $verbose = 1;
 my ($start, $end) = (1,12);
 my $album;
-command_line();
 
 # These should be configurable.  They're not, yet.
 my @parts = qw(lead bass tenor bari);
 my @pts = qw(Ld Bs Tr Br);
+
+command_line();
+
 my $pt_re = qr<@{[
     join "|", map { qr/\b$_\b/i } @parts
 ]}>;
