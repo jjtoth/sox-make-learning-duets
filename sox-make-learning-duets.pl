@@ -5,7 +5,7 @@ use Time::HiRes "sleep";
 # Creates duets out of learning tracks
 # See usage at the bottom.
 use warnings;
-use strict;
+use v5.12;
 use MP3::Tag;
 
 use Getopt::Long;
@@ -42,21 +42,26 @@ sub sys_or_die{
 # Use tracknum to keep count of the tracks (and put them all in the same album)
 my $tracknum;
 
+sub file_for {
+    state %file_for;
+    my ($part, $num) = @_;
+    my $file =  $file_for{$part}{$num} //=
+        first{ -f $_ } (glob("$part/$num*.mp3"), glob ("$part/?-$num*.mp3"));
+        # Some years, I claim that the albums are, for example
+        # "1 of 4", and some years I don't. Thus, the filename Apple Music gives
+        # the track can vary.
+    die "No file found for part $part track number $num" unless $file;
+    return $file;
+}
+
 for my $num (@nums) {
     for my $i ( 0..$#parts ) {
         my $part1 = $parts[$i];
         for my $j ( ($i+1)..$#parts ) {
             my $part2 = $parts[$j];
             my @files = (
-                # It would probably be better to set "file1" and "$file2"
-                # above, one time each, instead of deriving it every time.
-                # Deriving made some sense before we started using the -M flag
-                # to sox with the remix effect, but now it doesn't (I think).
-                (first{ -f $_ } (glob("$part1/$num*.mp3"), glob ("$part1/?-$num*.mp3"))),
-                (first{ -f $_ } (glob("$part2/$num*.mp3"), glob ("$part2/?-$num*.mp3"))),
-                # Some years, I claim that the albums are, for example
-                # "1 of 4", and some years I don't. Thus, the name iTunes gives
-                # the file varies.
+                file_for($part1, $num),
+                file_for($part2, $num),
             );
             do {
                 print "No more files! (parts are $part1 $part2)\n";
@@ -100,7 +105,7 @@ for my $num (@nums) {
                 $album =~ s/$pt_re //;
             }
 
-            my $duet = "$part1/$part2";
+            my $duet = "$part2/$part1";
             for ($title) {
                 $_ = "$duet - $_" unless s/$pt_re/$duet/g;
                 s/\s\s+/ /g;
