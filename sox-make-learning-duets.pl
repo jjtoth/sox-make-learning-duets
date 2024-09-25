@@ -100,7 +100,7 @@ for my $num (@nums) {
                 $album =~ s/$pt_re //;
             }
 
-            my $duet = "$pts[$i]/$pts[$j]";
+            my $duet = "$part1/$part2";
             for ($title) {
                 $_ = "$duet - $_" unless s/$pt_re/$duet/g;
                 s/\s\s+/ /g;
