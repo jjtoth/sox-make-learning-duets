@@ -86,6 +86,7 @@ for my $num (@nums) {
                 # channel and the first channel (right of the first) for the
                 # right.
             );
+            next if $dry_run;
             my ($title, $track, $artist, $cur_album) =
                 MP3::Tag->new($files[0])->autoinfo;
             # Really we care about $title and $album.  Though we might want to
