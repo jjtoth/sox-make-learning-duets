@@ -14,7 +14,7 @@ use List::Util qw(first);
 
 my $help;
 my $dry_run;
-my $verbose = 1;
+my $verbose;
 my ($start, $end) = (1,12);
 my $album;
 
