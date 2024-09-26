@@ -160,8 +160,11 @@ for my $num ($start..$stop) {
 
             unless ($album) {
                 $album = $cur_album;
-                $album =~ s/Learning Tracks/Learning Duets/;
-                $album =~ s/\b$pt_re\b //;
+                $album =~ s/\b$pt_re\b//;
+                $album =~ s/Learning Tracks/Learning Duets/
+                    or $album = "$album Learning Duets";
+                $album =~ s/\s\s+/ /g;
+                say "\tAlbum will be $album" if $verbose;
             }
 
             if (! $dry_run) {
