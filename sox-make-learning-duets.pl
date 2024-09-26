@@ -32,7 +32,18 @@ my $pt_re = qr<@{[
 
 my @base_command = qw(sox -S);
 sub sys_or_die{
-    print "@_\n" if $verbose;
+    if ($verbose) {
+        say join " ", map {
+            $_ eq quotemeta($_)   ? $_
+            : $_ =~ m/^[\w_+.-]+$/ ? $_
+            : ! m/'/              ? qq{'$_'}
+            : do {
+                my $copy = $_;
+                $copy =~ s{'}{'\\''};
+                qq{'$copy'}
+            }
+        } @_;
+    }
     sleep .01;
     if (not $dry_run) {
         system(@_) == 0 or exit 1;
@@ -107,19 +118,25 @@ for my $num ($start..$stop) {
             # Really we care about $title and $album.  Though we might want to
             # fiddle with track (if it contains the disk # info).
 
+            my $file_title = $title;
             my $duet = "$part2/$part1";
-            (my $file_title = $title);
-            for ($file_title) {
-                s/(?:_|\b)$pt_re$//
-                or
-                s/^$pt_re(?:\b|_)//
-                or
-                s/\b$pt_re\b//
-            }
             for ($title) {
                 $_ = "$duet - $_" unless s/(_|\b)$pt_re(\b|_)/$1$duet$2/g;
                 s/\s\s+/ /g;
                 s/__+/_/g;
+            }
+            for ($file_title) {
+                # Remove leading, trailing ,or (somewhat) inner part name.
+                s/(?:_|\b)$pt_re$//
+                or
+                s/^$pt_re(?:\b|_)//
+                or
+                s/\b$pt_re\b//;
+
+                # Translate any slashes to underscores;
+                s{/}{_}g;
+                # Turn spaces and apostrophes into underscores, too.
+                s/(?:\s+|')/_/g;
             }
             my $file = sprintf("%03d-%02d-%s-%s-%s.mp3", $tracknum, $num, $part2, $part1, $file_title);
             sys_or_die(
@@ -140,7 +157,6 @@ for my $num ($start..$stop) {
                 # channel and the first channel (right of the first) for the
                 # right.
             );
-            next if $dry_run;
 
             unless ($album) {
                 $album = $cur_album;
@@ -148,21 +164,14 @@ for my $num ($start..$stop) {
                 $album =~ s/\b$pt_re\b //;
             }
 
-            my $mp3 = MP3::Tag->new($file);
-            $mp3->update_tags({
-                title => $title,
-                album => $album,
-                track => $tracknum,
-            });
-            # Now make title appropriate for paths.
-            $title =~ s{\s*$duet\s*-?\s*}{ };
-            $title =~ s{/}{_}g;
-            $duet =~ s{/}{-}g;
-            my $new_path = sprintf(
-                "%02d %s - %s.mp3",
-                $tracknum, $duet, $title
-            );
-            system(qw(mv -v), $file, $new_path);
+            if (! $dry_run) {
+                my $mp3 = MP3::Tag->new($file);
+                $mp3->update_tags({
+                    title => $title,
+                    album => $album,
+                    track => $tracknum,
+                });
+            }
         }
     }
 }
