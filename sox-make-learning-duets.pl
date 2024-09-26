@@ -15,10 +15,11 @@ use List::Util qw(first);
 my $help;
 my $dry_run;
 my $verbose;
-my ($start, $end) = (1,12);
+my ($start, $stop) = (1,12);
+my ($begin, $end)  = (1, 1_000_000_000);
 my $album;
 
-# These should be configurable.  They're not, yet.
+# Parts should be configurable.  They're not, yet.
 my @parts = qw(lead bass tenor bari);
 my @pts = qw(Ld Bs Tr Br);
 
@@ -28,19 +29,15 @@ my $pt_re = qr<@{[
     join "|", map { qr/\b$_\b/i } @parts
 ]}>;
 
-my @nums = map { sprintf("%02d",$_) } $start..$end;
 
 my @base_command = qw(sox -S);
 sub sys_or_die{
-    print "\e[32m@_\e[0m\n" if $verbose;
+    print "@_\n" if $verbose;
     sleep .01;
     if (not $dry_run) {
         system(@_) == 0 or exit 1;
     }
 }
-
-# Use tracknum to keep count of the tracks (and put them all in the same album)
-my $tracknum;
 
 sub file_for {
     state %file_for;
@@ -54,11 +51,37 @@ sub file_for {
     return $file;
 }
 
+# We use $tracknum to keep count of the output track number, so we can put them
+# all in the same album. Since we increment it at the start of the loop, we
+# want it to be one less than our desired starting number.
+my $tracknum = ($start - 1 ) * @parts * (@parts - 1) / 2;
+
+my @nums = map { sprintf("%02d",$_) } $start..$stop;
+ALL:
 for my $num (@nums) {
     for my $i ( 0..$#parts ) {
         my $part1 = $parts[$i];
         for my $j ( ($i+1)..$#parts ) {
             $tracknum++;
+            if ($tracknum < $begin) {
+                if ($verbose) {
+                    state $have_printed;
+                    print ! $have_printed++
+                        ? "[$tracknum<$begin"   # Show beginning if we haven't printed"
+                        : "[$tracknum"          # Just show the track number if we have
+                        ;
+                    # Why no closing bracket?  Um:
+                    print $tracknum == $begin - 1
+                        ? "=$begin-1]\n"     # show this is the end if it's the last time
+                        : "]"                   # otherwise, just close the bracket
+                }
+                next;
+            }
+            if ($tracknum > $end) {
+                print "$tracknum > \$end($end)\n"
+                    if $verbose;
+                last ALL;
+            }
             my $part2 = $parts[$j];
             my @files;
             eval { @files = (
@@ -138,6 +161,8 @@ sub command_line {
         "dry-run!"  => \$dry_run,
         "verbose!"  => \$verbose,
         "start=i" => \$start,
+        "stop=i" => \$stop,
+        "begin=i" => \$begin,
         "end=i" => \$end,
         "album=s"   => \$album,
     ) or exit 1;
@@ -150,10 +175,25 @@ sub command_line {
 }
 sub usage {
     return <<"EOQ";
-Usage: $0 [--start=N] [--end=N] [--dry-run] [--verbose]
-Creates duets out of learning tracks.  You should set up a temporary directory
+Usage: $0 [--dry-run] [--verbose]
+    [--start=N] [--stop=N]  # Refers to the source track numbers
+    [--begin=N] [--end=N]   # Refers to the destination track numbers
+Creates duets out of learning tracks. You should set up a temporary directory
 with symlinks for each part (lead, bari, bass, tenor), and then all 6 duets will
 be created when run in that temporary directory.
-By default, we try for 1 through 12.
+
+
+By default, we try for source track numbers 1 through 12, and do all
+destination tracks. Use --start and --stop (for the source tracks)
+and --begin and --end (for the destination track numbers) to change
+that if some have already been made.
+
+Use --dry-run to see what would be done. (Extremely useful for
+figuring out --begin and --end)
+
+It is assumed that the file names will be something like, for example:
+    bari/01 Make 'Em Laugh.mp3
+    tenor/10 May I Never Love Again.mp3
+
 EOQ
 }
