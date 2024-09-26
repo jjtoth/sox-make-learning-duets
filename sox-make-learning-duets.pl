@@ -26,7 +26,7 @@ my @pts = qw(Ld Bs Tr Br);
 command_line();
 
 my $pt_re = qr<@{[
-    join "|", map { qr/\b$_\b/i } @parts
+    join "|", map { qr/$_/i } @parts
 ]}>;
 
 
@@ -102,8 +102,26 @@ for my $num ($start..$stop) {
             die "Undefined files in @files!" if grep { ! defined } @files;
             # I think we're getting undefs because first() is doing weird
             # things.  Don't care enough to track it down.
+            my ($title, $track, $artist, $cur_album) =
+                MP3::Tag->new($files[0])->autoinfo;
+            # Really we care about $title and $album.  Though we might want to
+            # fiddle with track (if it contains the disk # info).
 
-            my $file = sprintf("%03d",$tracknum) . "-$num-$part2-$part1.mp3";
+            my $duet = "$part2/$part1";
+            (my $file_title = $title);
+            for ($file_title) {
+                s/(?:_|\b)$pt_re$//
+                or
+                s/^$pt_re(?:\b|_)//
+                or
+                s/\b$pt_re\b//
+            }
+            for ($title) {
+                $_ = "$duet - $_" unless s/(_|\b)$pt_re(\b|_)/$1$duet$2/g;
+                s/\s\s+/ /g;
+                s/__+/_/g;
+            }
+            my $file = sprintf("%03d-%02d-%s-%s-%s.mp3", $tracknum, $num, $part2, $part1, $file_title);
             sys_or_die(
                 @base_command, '-M',
                 # -M means merge with separate channels.  So with two files,
@@ -123,21 +141,11 @@ for my $num ($start..$stop) {
                 # right.
             );
             next if $dry_run;
-            my ($title, $track, $artist, $cur_album) =
-                MP3::Tag->new($files[0])->autoinfo;
-            # Really we care about $title and $album.  Though we might want to
-            # fiddle with track (if it contains the disk # info).
 
             unless ($album) {
                 $album = $cur_album;
                 $album =~ s/Learning Tracks/Learning Duets/;
-                $album =~ s/$pt_re //;
-            }
-
-            my $duet = "$part2/$part1";
-            for ($title) {
-                $_ = "$duet - $_" unless s/$pt_re/$duet/g;
-                s/\s\s+/ /g;
+                $album =~ s/\b$pt_re\b //;
             }
 
             my $mp3 = MP3::Tag->new($file);
