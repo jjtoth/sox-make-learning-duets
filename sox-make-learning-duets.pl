@@ -43,7 +43,12 @@ sub file_for {
     state %file_for;
     my ($part, $num) = @_;
     my $file =  $file_for{$part}{$num} //=
-        first{ -f $_ } (glob("$part/$num*.mp3"), glob ("$part/?-$num*.mp3"));
+        first{ -f $_ } (
+            map {
+                glob("$part/$_$num*.mp3"),
+                glob ("$part/?-$_$num*.mp3")
+            } ("0", "00", "")
+        );
         # Some years, I claim that the albums are, for example
         # "1 of 4", and some years I don't. Thus, the filename Apple Music gives
         # the track can vary.
@@ -56,9 +61,8 @@ sub file_for {
 # want it to be one less than our desired starting number.
 my $tracknum = ($start - 1 ) * @parts * (@parts - 1) / 2;
 
-my @nums = map { sprintf("%02d",$_) } $start..$stop;
 ALL:
-for my $num (@nums) {
+for my $num ($start..$stop) {
     for my $i ( 0..$#parts ) {
         my $part1 = $parts[$i];
         for my $j ( ($i+1)..$#parts ) {
