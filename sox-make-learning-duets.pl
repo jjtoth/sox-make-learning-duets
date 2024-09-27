@@ -173,6 +173,7 @@ for my $num ($start..$stop) {
                     title => $title,
                     album => $album,
                     track => $tracknum,
+                    artist => $artist,
                 });
             }
         }
