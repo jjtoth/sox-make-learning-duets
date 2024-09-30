@@ -19,8 +19,6 @@ my ($start, $stop) = (1,12);
 my ($begin, $end)  = (1, 1_000_000_000);
 my $album;
 
-# Parts should be configurable.  They're not, yet.
-
 my @parts;
 my %abbr_for = (
     tenor => "Tr",
@@ -228,18 +226,21 @@ sub command_line {
 }
 sub usage {
     return <<"EOQ";
-Usage: $0 [--dry-run] [--verbose]
+Usage: $0 [--dry-run] [--verbose] [ list_of_parts ]
     [--start=N] [--stop=N]  # Refers to the source track numbers
     [--begin=N] [--end=N]   # Refers to the destination track numbers
 Creates duets out of learning tracks. You should set up a temporary directory
-with symlinks for each part (lead, bari, bass, tenor), and then all 6 duets will
+with symlinks for each part (e.g. lead, bari, bass, tenor), and then all 6 duets will
 be created when run in that temporary directory.
-
 
 By default, we try for source track numbers 1 through 12, and do all
 destination tracks. Use --start and --stop (for the source tracks)
 and --begin and --end (for the destination track numbers) to change
 that if some have already been made.
+
+Also by default, we use lead bass tenor bari, in that order. If you'd like to
+use other (or additional [or fewer]) parts, or use them in a different order,
+you can specify them on the command line instead.
 
 Use --dry-run to see what would be done. (Extremely useful for
 figuring out --begin and --end)
