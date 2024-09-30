@@ -139,7 +139,7 @@ for my $num ($start..$stop) {
             # fiddle with track (if it contains the disk # info).
 
             my $file_title = $title;
-            my $duet = "$part2/$part1";
+            my $duet = "$pts[$i]/$pts[$j]";
             for ($title) {
                 $_ = "$duet - $_" unless s/(_|\b)$pt_re(\b|_)/$1$duet$2/g;
                 s/\s\s+/ /g;
