@@ -22,8 +22,18 @@ my $album;
 # Parts should be configurable.  They're not, yet.
 
 my @parts;
-my @pts;
+my %abbr_for = (
+    tenor => "Tr",
+    lead  => "Ld",
+    bass  => "Bs",
+    bari  => "Br",
+);
 my @files;
+
+sub abbr_for {
+    my $thing = shift;
+    return $abbr_for{$thing} || $thing;
+}
 
 command_line();
 
@@ -31,7 +41,6 @@ if (@ARGV) {
     while (my $arg = shift) {
         if (-d $arg ) {
             push @parts, $arg;
-            push @pts, $arg;
         }
         else {
             die "No directory for $arg";
@@ -40,7 +49,6 @@ if (@ARGV) {
 }
 else {
     @parts = qw(lead bass tenor bari);
-    @pts = qw(Ld Bs Tr Br);
 }
 
 
@@ -139,7 +147,7 @@ for my $num ($start..$stop) {
             # fiddle with track (if it contains the disk # info).
 
             my $file_title = $title;
-            my $duet = "$pts[$i]/$pts[$j]";
+            my $duet = abbr_for($part1) . "/" . abbr_for($part2);
             for ($title) {
                 $_ = "$duet - $_" unless s/(_|\b)$pt_re(\b|_)/$1$duet$2/g;
                 s/\s\s+/ /g;
