@@ -20,10 +20,30 @@ my ($begin, $end)  = (1, 1_000_000_000);
 my $album;
 
 # Parts should be configurable.  They're not, yet.
-my @parts = qw(lead bass tenor bari);
-my @pts = qw(Ld Bs Tr Br);
+
+my @parts;
+my @pts;
+my @files;
 
 command_line();
+
+if (@ARGV) {
+    while (my $arg = shift) {
+        if (-d $arg ) {
+            push @parts, $arg;
+            push @pts, $arg;
+        }
+        else {
+            die "No directory for $arg";
+        }
+    }
+}
+else {
+    @parts = qw(lead bass tenor bari);
+    @pts = qw(Ld Bs Tr Br);
+}
+
+
 
 my $pt_re = qr<@{[
     join "|", map { qr/$_/i } @parts
