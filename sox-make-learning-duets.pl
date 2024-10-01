@@ -192,15 +192,24 @@ for my $num ($start..$stop) {
                 $album =~ s/\s\s+/ /g;
                 say "\tAlbum will be $album" if $verbose;
             }
-
-            if (! $dry_run) {
-                my $mp3 = MP3::Tag->new($file);
-                $mp3->update_tags({
+            my %mp3tags = (
                     title => $title,
                     album => $album,
                     track => $tracknum,
                     artist => $artist,
-                });
+            );
+            if (! $dry_run) {
+                my $mp3 = MP3::Tag->new($file);
+                $mp3->update_tags({%mp3tags});
+            }
+            if ($verbose > 1) {
+                print "mp3info: {";
+                print for map {
+                    my ($key, $value) = ($_, $mp3tags{$_});
+                    $value =~ s<([}{])> <} . q<$1> . q{>g;
+                    qq{ $key => q{$value}, };
+                } sort keys %mp3tags;
+                say "}";
             }
         }
     }
