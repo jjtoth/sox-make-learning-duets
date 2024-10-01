@@ -210,7 +210,10 @@ sub command_line {
     GetOptions(
         "help" => \$help,
         "dry-run!"  => \$dry_run,
-        "verbose!"  => \$verbose,
+        "verbose+"  => \$verbose,
+        'noverbose|no-verbose'  => sub {
+            $verbose = 0;
+        },
         "start=i" => \$start,
         "stop=i" => \$stop,
         "begin=i" => \$begin,
