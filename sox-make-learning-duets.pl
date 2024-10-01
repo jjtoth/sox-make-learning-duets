@@ -46,7 +46,7 @@ if (@ARGV) {
     }
 }
 else {
-    @parts = qw(lead bass tenor bari);
+    @parts = qw(bass tenor lead bari);
 }
 
 
