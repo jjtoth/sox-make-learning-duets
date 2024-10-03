@@ -192,15 +192,24 @@ for my $num ($start..$stop) {
                 $album =~ s/\s\s+/ /g;
                 say "\tAlbum will be $album" if $verbose;
             }
-
-            if (! $dry_run) {
-                my $mp3 = MP3::Tag->new($file);
-                $mp3->update_tags({
+            my %mp3tags = (
                     title => $title,
                     album => $album,
                     track => $tracknum,
                     artist => $artist,
-                });
+            );
+            if (! $dry_run) {
+                my $mp3 = MP3::Tag->new($file);
+                $mp3->update_tags({%mp3tags});
+            }
+            if ($verbose > 1) {
+                print "mp3info: {";
+                print for map {
+                    my ($key, $value) = ($_, $mp3tags{$_});
+                    $value =~ s<([}{])> <} . q<$1> . q{>g;
+                    qq{ $key => q{$value}, };
+                } sort keys %mp3tags;
+                say "}";
             }
         }
     }
@@ -210,7 +219,10 @@ sub command_line {
     GetOptions(
         "help" => \$help,
         "dry-run!"  => \$dry_run,
-        "verbose!"  => \$verbose,
+        "verbose+"  => \$verbose,
+        'noverbose|no-verbose'  => sub {
+            $verbose = 0;
+        },
         "start=i" => \$start,
         "stop=i" => \$stop,
         "begin=i" => \$begin,
@@ -226,24 +238,31 @@ sub command_line {
 }
 sub usage {
     return <<"EOQ";
-Usage: $0 [--dry-run] [--verbose] [ list_of_parts ]
+Usage: $0
+    [ list_of_parts ]
+    [--dry-run] [--verbose [--verbose [...]]]
     [--start=N] [--stop=N]  # Refers to the source track numbers
     [--begin=N] [--end=N]   # Refers to the destination track numbers
-Creates duets out of learning tracks. You should set up a temporary directory
-with symlinks for each part (e.g. lead, bari, bass, tenor), and then all 6 duets will
-be created when run in that temporary directory.
+
+Creates duets out of learning tracks. You should set up a temporary
+directory with symlinks for each part (e.g. lead, bari, bass, tenor),
+and then all 6 duets will be created when run in that temporary directory.
 
 By default, we try for source track numbers 1 through 12, and do all
 destination tracks. Use --start and --stop (for the source tracks)
 and --begin and --end (for the destination track numbers) to change
-that if some have already been made.
+what we will do if some have already been made.
 
 Also by default, we use lead bass tenor bari, in that order. If you'd like to
 use other (or additional [or fewer]) parts, or use them in a different order,
 you can specify them on the command line instead.
 
 Use --dry-run to see what would be done. (Extremely useful for
-figuring out --begin and --end)
+figuring out --begin and --end).
+
+--dry-run sets verbose. One -v shows the command to be run and what number of
+destination track we are skipping (if applicable), and -v -v will also show
+the MP3 tags we would add.
 
 It is assumed that the file names will be something like, for example:
     bari/01 Make 'Em Laugh.mp3
