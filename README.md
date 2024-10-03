@@ -22,6 +22,4 @@ I recommend using Audacity to time shift them.
 
 KNOWN BUGS
 
-* Looks like the "author" tag is being filled with the derived track number
-* The script puts the parts in the wrong order (so if bari is in the left side and tenor in the right, it is given the name Tr/Br)
-* The left channel might be much louder than the right of any given track.  (This might just be the speakers in my car.)
+See issues.
