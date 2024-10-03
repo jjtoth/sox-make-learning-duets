@@ -146,9 +146,14 @@ for my $num ($start..$stop) {
             my $file_title = $title;
             my $duet = abbr_for($part1) . "/" . abbr_for($part2);
             for ($title) {
+                # Either add the duet label to the front, or change the current
+                # tag in the title to be that.
                 $_ = "$duet - $_" unless s/(_|\b)$pt_re(\b|_)/$1$duet$2/g;
                 s/\s\s+/ /g;
                 s/__+/_/g;
+                # If we ended up with the duet label at the end, move it to the
+                # beginning.
+                s/^(.*)([[:space:]]+|_)$duet$/$duet $1/;
             }
             for ($file_title) {
                 # Remove leading, trailing ,or (somewhat) inner part name.
