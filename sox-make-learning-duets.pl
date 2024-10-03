@@ -46,7 +46,7 @@ if (@ARGV) {
     }
 }
 else {
-    @parts = qw(bass tenor lead bari);
+    @parts = qw( bari lead tenor bass);
 }
 
 
@@ -100,9 +100,9 @@ my $tracknum = ($start - 1 ) * @parts * (@parts - 1) / 2;
 
 ALL:
 for my $num ($start..$stop) {
-    for my $i ( 0..$#parts ) {
-        my $part1 = $parts[$i];
-        for my $j ( ($i+1)..$#parts ) {
+    my @cur_parts = @parts;
+    while (my $part1 = shift @cur_parts) {
+        for my $part2 (@cur_parts) {
             $tracknum++;
             if ($tracknum < $begin) {
                 if ($verbose) {
@@ -123,7 +123,6 @@ for my $num ($start..$stop) {
                     if $verbose;
                 last ALL;
             }
-            my $part2 = $parts[$j];
             my @files;
             eval { @files = (
                     file_for($part1, $num),
@@ -164,7 +163,7 @@ for my $num ($start..$stop) {
                 # Turn spaces and apostrophes into underscores, too.
                 s/(?:\s+|')/_/g;
             }
-            my $file = sprintf("%03d-%02d-%s-%s-%s.mp3", $tracknum, $num, $part2, $part1, $file_title);
+            my $file = sprintf("%03d-%02d-%s-%s-%s.mp3", $tracknum, $num, $part1, $part2, $file_title);
             sys_or_die(
                 @base_command, '-M',
                 # -M means merge with separate channels.  So with two files,
@@ -178,9 +177,9 @@ for my $num ($start..$stop) {
                 # "2" (instead of the lousy default "5").
 
                 $file,
-                qw(remix 3 1),
-                # I.e. take the third channel (left of the second) for the left
-                # channel and the first channel (right of the first) for the
+                qw(remix 1 3),
+                # I.e. take the first channel (left of the second) for the left
+                # channel and the third channel (right of the first) for the
                 # right.
             );
 
