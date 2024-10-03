@@ -35,6 +35,8 @@ sub abbr_for {
 
 command_line();
 
+$verbose //= 0; # This avoids tripping warnings about comparing non-numeric things
+
 if (@ARGV) {
     while (my $arg = shift) {
         if (-d $arg ) {
