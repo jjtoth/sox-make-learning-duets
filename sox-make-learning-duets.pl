@@ -100,9 +100,9 @@ my $tracknum = ($start - 1 ) * @parts * (@parts - 1) / 2;
 
 ALL:
 for my $num ($start..$stop) {
-    for my $i ( 0..$#parts ) {
-        my $part1 = $parts[$i];
-        for my $j ( ($i+1)..$#parts ) {
+    my @cur_parts = @parts;
+    while (my $part1 = shift @cur_parts) {
+        for my $part2 (@cur_parts) {
             $tracknum++;
             if ($tracknum < $begin) {
                 if ($verbose) {
@@ -123,7 +123,6 @@ for my $num ($start..$stop) {
                     if $verbose;
                 last ALL;
             }
-            my $part2 = $parts[$j];
             my @files;
             eval { @files = (
                     file_for($part1, $num),
