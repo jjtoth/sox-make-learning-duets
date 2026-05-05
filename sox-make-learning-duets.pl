@@ -165,6 +165,9 @@ for my $num ($start..$stop) {
                 or
                 s/\b$pt_re\b//;
 
+                # Remove extra track numbers if they're there because Jim is weird and wants them in the title:
+                s/\b\[?0*$num\]?\b//;
+
                 # Translate any slashes to underscores;
                 s{/}{_}g;
                 # Turn spaces and apostrophes into underscores, too.
