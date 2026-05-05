@@ -172,6 +172,10 @@ for my $num ($start..$stop) {
                 s{/}{_}g;
                 # Turn spaces and apostrophes into underscores, too.
                 s/(?:\s+|')/_/g;
+
+                # Smash up leading and trailing dashes/underscores
+                s/^[_-]+//;
+                s/[_-]+$//;
             }
             my $file = sprintf("%03d-%02d-%s-%s-%s.mp3", $tracknum, $num, $part1, $part2, $file_title);
             sys_or_die(
